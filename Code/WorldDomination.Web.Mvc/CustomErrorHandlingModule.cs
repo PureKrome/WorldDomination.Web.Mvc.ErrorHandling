@@ -1,8 +1,5 @@
-﻿using System;
-using System.Web;
-using System.Web.Compilation;
-using System.Web.Util;
-using System.Web.WebPages;
+﻿using System.Web;
+using System.Web.Mvc;
 
 namespace WorldDomination.Web.Mvc
 {
@@ -18,24 +15,22 @@ namespace WorldDomination.Web.Mvc
         {
             const string errorPage = "~/Views/Shared/Error.cshtml";
 
-            // When ever an error occurs on the Http Application, we'll now handle it, here.
             context.Error += (sender, e) =>
             {
-                HttpContext.Current.ClearError();
+                //HttpContext.Current.ClearError();
 
-                IWebObjectFactory webObjectFactory = BuildManager.GetObjectFactory(errorPage, true);
+                HttpContext.Current.Response.TrySkipIisCustomErrors = true;
 
-                WebPageBase webPageBase = webObjectFactory.CreateInstance() as WebPageBase;
-                
-                if (webPageBase == null)
-                {
-                    throw new InvalidOperationException("Failed to create an instance of the following page: " + errorPage);
-                }
-
-                var wrapper = new HttpContextWrapper(HttpContext.Current);
-                var webPageContext = new WebPageContext(wrapper, null, null);
-
-                webPageBase.ExecutePageHierarchy(webPageContext, HttpContext.Current.Response.Output);
+                var errorController = new ErrorController();
+                var controllerContext =
+                    new ControllerContext(context.Context.Request.RequestContext, errorController);
+                var view = new RazorView(controllerContext, errorPage, null, false, null);
+                var viewModel = new ErrorViewModel();
+                var tempData = new TempDataDictionary();
+                var viewContext = new ViewContext(controllerContext, view,
+                                                new ViewDataDictionary(viewModel), tempData,
+                                                context.Response.Output);
+                view.Render(viewContext, context.Response.Output);
             };
         }
 
