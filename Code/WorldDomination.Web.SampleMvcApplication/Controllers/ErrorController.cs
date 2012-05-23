@@ -9,5 +9,11 @@ namespace WorldDomination.Web.SampleMvcApplication.Controllers
         {
             throw new InvalidOperationException("This is a test of our error handling.");
         }
+
+        [Authorize]
+        public ActionResult MustBeAuthorized()
+        {
+            return Content("If you can see this, then you're authorized.");
+        }
     }
 }

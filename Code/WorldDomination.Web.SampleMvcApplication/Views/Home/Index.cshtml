@@ -1,4 +1,5 @@
-﻿@{
+﻿@model WorldDomination.Web.SampleMvcApplication.Models.IndexViewModel
+@{
     Layout = null;
 }
 
@@ -10,7 +11,17 @@
 </head>
 <body>
     <div>
-        Home page.
+        Home page.<br/>
+        <br/>
+        Are Custom Errors Enabled? @Model.IsCustomErrorsEnabled<br/>
+        @Model.IsCustomErrorsEnabledText<br/><br/>
+        
+        @Html.ActionLink("Click here to throw an 500 server error.", "Test", "Error")
+        <br/>
+        <a href="/this-resource-doesnt-exist">Click here to throw a 404 error</a>
+        <br/>
+        @Html.ActionLink("Click here to try and access a resource that requires you to be Authorized.", "MustBeAuthorized", "Error")
+
     </div>
 </body>
 </html>

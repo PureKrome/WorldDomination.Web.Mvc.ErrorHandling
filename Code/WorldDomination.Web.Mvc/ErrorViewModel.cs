@@ -1,6 +1,9 @@
-﻿namespace WorldDomination.Web.Mvc
+﻿using System;
+
+namespace WorldDomination.Web.Mvc
 {
-    internal class ErrorViewModel
+    public class ErrorViewModel
     {
+        public Exception Exception { get; set; }
     }
 }
