@@ -57,15 +57,13 @@ namespace WorldDomination.Web.Mvc
                                          // Now - what do we render? The view provided or some basic content becuase one HASN'T been provided?
                                          if (string.IsNullOrEmpty(viewPath))
                                          {
-                                             RenderFallBackErrorViewBecauseNoneWasProvided(httpApplication, currentError);
+                                             RenderFallBackErrorViewBecauseNoneWasProvided(httpApplication, httpStatusCode, currentError);
                                          }
                                          else
                                          {
-                                             RenderCustomErrorView(httpApplication, viewPath, currentError);
+                                             RenderCustomErrorView(httpApplication, viewPath, httpStatusCode,
+                                                                   currentError);
                                          }
-
-                                         // Lets make sure we set the correct Error Status code :)
-                                         httpApplication.Response.StatusCode = (int) httpStatusCode;
 
                                          // Avoid any IIS low lever errors.
                                          httpApplication.Response.TrySkipIisCustomErrors = true;
@@ -95,7 +93,7 @@ namespace WorldDomination.Web.Mvc
             string redirect = null;
             if (section.Errors != null)
             {
-                CustomError customError = section.Errors[((int)httpStatusCode).ToString()];
+                CustomError customError = section.Errors[((int) httpStatusCode).ToString()];
                 if (customError != null)
                 {
                     redirect = customError.Redirect;
@@ -107,6 +105,7 @@ namespace WorldDomination.Web.Mvc
         }
 
         private static void RenderCustomErrorView(HttpApplication httpApplication, string viewPath,
+                                                  HttpStatusCode httpStatusCode,
                                                   Exception currentError)
         {
             try
@@ -128,22 +127,28 @@ namespace WorldDomination.Web.Mvc
                                                   new ViewDataDictionary(viewModel), tempData,
                                                   httpApplication.Response.Output);
                 view.Render(viewContext, httpApplication.Response.Output);
+
+                // Lets make sure we set the correct Error Status code :)
+                httpApplication.Response.StatusCode = (int) httpStatusCode;
             }
-            catch(Exception exception)
+            catch (Exception exception)
             {
                 // Damn it! Something -really- crap just happened. 
                 // eg. the path to the redirect might not exist, etc.
-                var errorMessage =
+                string errorMessage =
                     string.Format(
                         "An error occured while trying to Render the custom error view which you provided, for this HttpStatusCode. ViewPath: {0}; Message: {1}",
                         string.IsNullOrEmpty(viewPath) ? "--no view path was provided!! --" : viewPath,
                         exception.Message);
 
-                RenderFallBackErrorViewBecauseNoneWasProvided(httpApplication, new InvalidOperationException(errorMessage, currentError));
+                RenderFallBackErrorViewBecauseNoneWasProvided(httpApplication,
+                                                              HttpStatusCode.InternalServerError,
+                                                              new InvalidOperationException(errorMessage, currentError));
             }
         }
 
         private static void RenderFallBackErrorViewBecauseNoneWasProvided(HttpApplication httpApplication,
+                                                                          HttpStatusCode httpStatusCode,
                                                                           Exception currentError)
         {
             // TODO: keep looping through each inner exception, while/if we have one.
@@ -151,6 +156,9 @@ namespace WorldDomination.Web.Mvc
             const string simpleErrorMessage =
                 "<html><head><title>An error has occured</title></head><body><h2>Sorry, an error occurred while processing your request.</h2><br/><br/><p><ul><li>Exception: {0}</li><li>Source: {1}</li></ul></p></body></html>";
             httpApplication.Response.Output.Write(simpleErrorMessage, currentError.Message, currentError.StackTrace);
+
+            // Lets make sure we set the correct Error Status code :)
+            httpApplication.Response.StatusCode = (int) httpStatusCode;
         }
     }
 }

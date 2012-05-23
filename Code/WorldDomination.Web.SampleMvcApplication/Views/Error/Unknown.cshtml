@@ -1,0 +1,32 @@
+﻿@model WorldDomination.Web.Mvc.ErrorViewModel
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Error</title>
+</head>
+<body>
+    <h2>
+        Sorry, an error occurred while processing your request. (HTTP UNKNOWN).
+    </h2>
+    <br/>
+    <br/>
+    @if (Model == null || Model.Exception == null)
+    {
+        <p>There's no exception provided.</p>
+    }
+    else
+    {
+        <p>
+            <ul>
+                <li>Exception: @Model.Exception.Message</li>
+                <li>Source: @Model.Exception.Source</li>
+            </ul>    
+
+        </p>
+    }
+</body>
+</html>
