@@ -9,6 +9,8 @@ namespace WorldDomination.Web.Mvc
 {
     public sealed class CustomErrorHandlingModule : IHttpModule
     {
+        private static CustomErrorsSection _customErrorsSection;
+
         #region Implementation of IHttpModule
 
         /// <summary>
@@ -21,7 +23,11 @@ namespace WorldDomination.Web.Mvc
 
             httpApplication.Error += (sender, e) =>
                                      {
-                                         if (!httpApplication.Context.IsCustomErrorEnabled)
+                                         // Do not show the custom errors if
+                                         // a) CustomErrors mode == "off" or not set.
+                                         // b) Mode == RemoteOnly and we are on our local development machine.
+                                         if (!httpApplication.Context.IsCustomErrorEnabled ||
+                                             (CustomErrorsSection.Mode == CustomErrorsMode.RemoteOnly && httpApplication.Request.IsLocal))
                                          {
                                              // Damn it :( Fine.... lets just bounce outta-here!
                                              return;
@@ -80,20 +86,31 @@ namespace WorldDomination.Web.Mvc
 
         #endregion
 
+        private static CustomErrorsSection CustomErrorsSection
+        {
+            get
+            {
+                if (_customErrorsSection != null)
+                {
+                    return _customErrorsSection;
+                }
+
+                Configuration configuration = WebConfigurationManager.OpenWebConfiguration("/");
+                return _customErrorsSection = configuration.GetSection("system.web/customErrors") as CustomErrorsSection;
+            }
+        }
+
         private static string GetCustomErrorRedirect(HttpStatusCode httpStatusCode)
         {
-            Configuration configuration = WebConfigurationManager.OpenWebConfiguration("/");
-            var section = configuration.GetSection("system.web/customErrors") as CustomErrorsSection;
-
-            if (section == null)
+            if (CustomErrorsSection == null)
             {
                 return null;
             }
 
             string redirect = null;
-            if (section.Errors != null)
+            if (CustomErrorsSection.Errors != null)
             {
-                CustomError customError = section.Errors[((int) httpStatusCode).ToString()];
+                CustomError customError = CustomErrorsSection.Errors[((int)httpStatusCode).ToString()];
                 if (customError != null)
                 {
                     redirect = customError.Redirect;
@@ -101,7 +118,7 @@ namespace WorldDomination.Web.Mvc
             }
 
             // Have we a redirect, yet? If not, then use the default if we have that.
-            return string.IsNullOrEmpty(redirect) ? section.DefaultRedirect : redirect;
+            return string.IsNullOrEmpty(redirect) ? CustomErrorsSection.DefaultRedirect : redirect;
         }
 
         private static void RenderCustomErrorView(HttpApplication httpApplication, string viewPath,
