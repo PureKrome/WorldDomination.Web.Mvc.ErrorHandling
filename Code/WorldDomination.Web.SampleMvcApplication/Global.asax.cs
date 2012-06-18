@@ -9,10 +9,14 @@ namespace WorldDomination.Web.SampleMvcApplication
 
     public class MvcApplication : HttpApplication
     {
-        public static void RegisterGlobalFilters(GlobalFilterCollection filters)
-        {
-            filters.Add(new HandleErrorAttribute());
-        }
+        // ********************
+        // **READ ME BITCHES **
+        // Make sure you do NOT have any global (or local) HandleError attributes registered
+        // ********************
+        //public static void RegisterGlobalFilters(GlobalFilterCollection filters)
+        //{
+        //    filters.Add(new HandleErrorAttribute());
+        //}
 
         public static void RegisterRoutes(RouteCollection routes)
         {
@@ -31,7 +35,6 @@ namespace WorldDomination.Web.SampleMvcApplication
         {
             AreaRegistration.RegisterAllAreas();
 
-            RegisterGlobalFilters(GlobalFilters.Filters);
             RegisterRoutes(RouteTable.Routes);
         }
     }
