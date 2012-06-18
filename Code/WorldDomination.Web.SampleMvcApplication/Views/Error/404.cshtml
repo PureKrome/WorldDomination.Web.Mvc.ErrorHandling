@@ -2,31 +2,71 @@
 @{
     Layout = null;
 }
-
 <!DOCTYPE html>
 <html>
-<head>
-    <title>Error</title>
-</head>
-<body>
-    <h2>
-        The page you're trying to show doesn't exist. (HTTP 404).
-    </h2>
-    <br/>
-    <br/>
-    @if (Model == null || Model.Exception == null)
-    {
-        <p>There's no exception provided.</p>
-    }
-    else
-    {
-        <p>
-            <ul>
-                <li>Exception: @Model.Exception.Message</li>
-                <li>Source: @Model.Exception.Source</li>
-            </ul>    
+    <head>
+        <title>Error</title>
+        
+        <!-- Missing 404 Kids taken from Scott Hanselmans post: http://www.hanselman.com/blog/PutMissingKidsOnYour404PageEntirelyClientSideSolutionWithYQLJQueryAndMSAjax.aspx -->
+        <style type="text/css">
+            .sys-template { display: none; }
 
-        </p>
-    }
-</body>
+            .missingkid { clear: both; }
+        </style>
+        <script src="http://ajax.microsoft.com/ajax/beta/0911/Start.js" type="text/javascript"> </script>
+        <script type="text/javascript">
+            Sys.require([Sys.components.dataView, Sys.scripts.jQuery], function() {
+                $("#missingkids").dataView();
+
+                var statecode = "ZZ";
+                var dataurl = "http://query.yahooapis.com/v1/public/yql?q=SELECT%20*%20From%20xml%0D%0A%20Where%20url%3D'http%3A%2F%2Fwww.missingkidsmap.com%2Fread.php%3Fstate%3D" + statecode + "'%0D%0A&format=json&callback=?";
+                var data = $.getJSON(dataurl, function(results) {
+                    Sys.get("$missingkids").set_data(results.query.results.locations.location);
+                }
+                );
+            });
+
+            function getSrc(url) {
+                var lastIndex = url.lastIndexOf('=');
+                return url.substring(lastIndex + 1);
+            }
+        </script>
+    </head>
+    <body>
+        <h2>
+            The page you're trying to show doesn't exist. (HTTP 404).
+        </h2>
+        <br/>
+        <br/>
+        @if (Model == null || Model.Exception == null)
+        {
+            <p>There's no exception provided.</p>
+        }
+        else
+        {
+            <p>
+                <ul>
+                    <li>Exception: @Model.Exception.Message</li>
+                    <li>Source: @Model.Exception.Source</li>
+                </ul>    
+
+            </p>
+        }
+    
+        <hr/>
+    
+        <h2>
+            We may not be able to find the page, but perhaps you could help find one of these missing children:
+        </h2>
+
+        <div id="missingkids" class="sys-template">
+            <div class="missingkid">
+                <img sys:width="60" sys:align="left" sys:src="{binding medpic, convert=getSrc}" />
+                <strong>{{firstname + " " + lastname}}</strong>, Age: {{age}} from  
+                {{city}}, {{st}}</br>
+                Contact: {{policeadd}} at {{policenum}}<br/>
+                <br/>
+            </div>
+        </div>
+    </body>
 </html>

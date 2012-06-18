@@ -28,5 +28,30 @@
 
         </p>
     }
+    
+    <hr/>
+    
+    <h2>Sowwy about the unexpected error. <br/>To try and make up for it, here's an awesome song to make you smile and groove :)</h2>
+    
+    @{
+        string id;
+        switch(DateTime.Now.Second % 5)
+        {
+            case 1: id = "zEBqhsvF4d0"; // Ivan Gough & Feenixpawl Feat. Georgi Kay - Colours (Simon D Remake).
+                break;
+            case 2: id = "YtSZ8POu1e0"; // Niki and the Dove - Mother Protect (Swedish House Mafia Bootleg Mix, Feat Afrojack).
+                break;
+            case 3: id = "kbvKUEXNaDU"; // Thunderheist- Jerk It.
+                break;
+            case 4: id = "ooZwmeUfuXg"; // Calvin Harris - Bounce ft. Kelis.
+                break;
+            default: // Includes 0 :)
+                id = "Q1EOGzzLy8U"; // Swedish House Mafia: One.
+                break;
+
+        }
+    }
+    <iframe width="640" height="360" src="http://www.youtube.com/embed/@(id)" frameborder="0" allowfullscreen></iframe>
+
 </body>
 </html>

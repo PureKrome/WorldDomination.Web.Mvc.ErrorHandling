@@ -15,5 +15,12 @@ namespace WorldDomination.Web.SampleMvcApplication.Controllers
         {
             return Content("If you can see this, then you're authorized.");
         }
+
+        public ActionResult WhatchaTalkinBoutWillis()
+        {
+            // A 403 shouldn't be handled explicitly in the web.config.
+            // Therefore, the defaultRedirect should be used.
+            return new HttpStatusCodeResult(405, "What-cha talkin' bout Willis??");
+        }
     }
 }

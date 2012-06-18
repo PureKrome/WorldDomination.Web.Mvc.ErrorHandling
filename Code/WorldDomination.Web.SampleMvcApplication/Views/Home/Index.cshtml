@@ -21,7 +21,8 @@
         <a href="/this-resource-doesnt-exist">Click here to throw a 404 error</a>
         <br/>
         @Html.ActionLink("Click here to try and access a resource that requires you to be Authorized.", "MustBeAuthorized", "Error")
-
+        <br/>
+        @Html.ActionLink("Click here to try and unhandled http status.", "WhatchaTalkinBoutWillis", "Error")  (ie. one that hasn't been defined in the web.config).
     </div>
 </body>
 </html>

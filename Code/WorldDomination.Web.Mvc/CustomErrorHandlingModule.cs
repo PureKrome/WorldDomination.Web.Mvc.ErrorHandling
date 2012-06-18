@@ -21,59 +21,16 @@ namespace WorldDomination.Web.Mvc
         {
             //const string errorPage = "~/Views/Shared/Error.cshtml";
 
-            httpApplication.Error += (sender, e) =>
-                                     {
-                                         // Do not show the custom errors if
-                                         // a) CustomErrors mode == "off" or not set.
-                                         // b) Mode == RemoteOnly and we are on our local development machine.
-                                         if (!httpApplication.Context.IsCustomErrorEnabled ||
-                                             (CustomErrorsSection.Mode == CustomErrorsMode.RemoteOnly && httpApplication.Request.IsLocal))
-                                         {
-                                             // Damn it :( Fine.... lets just bounce outta-here!
-                                             return;
-                                         }
+            httpApplication.EndRequest += (sender, e) =>
+                                          {
+                                              // Check to make sure the Http status is NOT 200.
+                                              if (httpApplication.Response.StatusCode != (int)HttpStatusCode.OK)
+                                              {
+                                                  HandleCustomErrors(httpApplication, sender, e, (HttpStatusCode)httpApplication.Response.StatusCode);
+                                              }
+                                          };
 
-                                         // By default, this is a code (server) 500 error.
-                                         // If we figure out that it's something else like a 404 or 401, etc
-                                         // then we'll handle that next.
-                                         HttpStatusCode httpStatusCode = HttpStatusCode.InternalServerError;
-
-                                         // Lets remember the current error.
-                                         Exception currentError = HttpContext.Current.Error;
-
-                                         // Do we have an HttpErrorException? Eg. 404 Not found or 401 Not Authorised?
-                                         var httpErrorException = currentError as HttpException;
-                                         if (httpErrorException != null)
-                                         {
-                                             httpStatusCode = (HttpStatusCode) httpErrorException.GetHttpCode();
-                                         }
-
-                                         // What is the view we require?
-                                         string viewPath = GetCustomErrorRedirect(httpStatusCode);
-                                         if (string.IsNullOrEmpty(viewPath))
-                                         {
-                                             // Either
-                                             // 1. No customErrors was provided (which would be weird cause how did we get here?)
-                                             // 2. No redirect was provided for the httpStatus code.
-                                         }
-
-                                         // Lets clear all the errors otherwise it shows the error page.
-                                         HttpContext.Current.ClearError();
-
-                                         // Now - what do we render? The view provided or some basic content becuase one HASN'T been provided?
-                                         if (string.IsNullOrEmpty(viewPath))
-                                         {
-                                             RenderFallBackErrorViewBecauseNoneWasProvided(httpApplication, httpStatusCode, currentError);
-                                         }
-                                         else
-                                         {
-                                             RenderCustomErrorView(httpApplication, viewPath, httpStatusCode,
-                                                                   currentError);
-                                         }
-
-                                         // Avoid any IIS low lever errors.
-                                         httpApplication.Response.TrySkipIisCustomErrors = true;
-                                     };
+            httpApplication.Error += (sender, e) => HandleCustomErrors(httpApplication, sender, e);
         }
 
         /// <summary>
@@ -85,6 +42,60 @@ namespace WorldDomination.Web.Mvc
         }
 
         #endregion
+
+        private static void HandleCustomErrors(HttpApplication httpApplication, object sender, EventArgs e, HttpStatusCode httpStatusCode = HttpStatusCode.InternalServerError)
+        {
+            // Do not show the custom errors if
+            // a) CustomErrors mode == "off" or not set.
+            // b) Mode == RemoteOnly and we are on our local development machine.
+            if (!httpApplication.Context.IsCustomErrorEnabled ||
+                (CustomErrorsSection.Mode == CustomErrorsMode.RemoteOnly && httpApplication.Request.IsLocal))
+            {
+                // Damn it :( Fine.... lets just bounce outta-here!
+                return;
+            }
+
+            //// By default, this is a code (server) 500 error.
+            //// If we figure out that it's something else like a 404 or 401, etc
+            //// then we'll handle that next.
+            //HttpStatusCode httpStatusCode = HttpStatusCode.InternalServerError;
+
+            // Lets remember the current error.
+            Exception currentError = HttpContext.Current.Error;
+
+            // Do we have an HttpErrorException? Eg. 404 Not found or 401 Not Authorised?
+            var httpErrorException = currentError as HttpException;
+            if (httpErrorException != null)
+            {
+                httpStatusCode = (HttpStatusCode)httpErrorException.GetHttpCode();
+            }
+
+            // What is the view we require?
+            string viewPath = GetCustomErrorRedirect(httpStatusCode);
+            if (string.IsNullOrEmpty(viewPath))
+            {
+                // Either
+                // 1. No customErrors was provided (which would be weird cause how did we get here?)
+                // 2. No redirect was provided for the httpStatus code.
+            }
+
+            // Lets clear all the errors otherwise it shows the error page.
+            HttpContext.Current.ClearError();
+
+            // Now - what do we render? The view provided or some basic content becuase one HASN'T been provided?
+            if (string.IsNullOrEmpty(viewPath))
+            {
+                RenderFallBackErrorViewBecauseNoneWasProvided(httpApplication, httpStatusCode, currentError);
+            }
+            else
+            {
+                RenderCustomErrorView(httpApplication, viewPath, httpStatusCode,
+                                      currentError);
+            }
+
+            // Avoid any IIS low lever errors.
+            httpApplication.Response.TrySkipIisCustomErrors = true;
+        }
 
         private static CustomErrorsSection CustomErrorsSection
         {
