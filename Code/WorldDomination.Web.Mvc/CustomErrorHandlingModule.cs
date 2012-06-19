@@ -21,16 +21,37 @@ namespace WorldDomination.Web.Mvc
         {
             //const string errorPage = "~/Views/Shared/Error.cshtml";
 
+            // :: IMPORTANT EVENTS NOTE ::
+            // The EndRequest event is fired every time, even if the Error event is also fired.
+            // This means we don't want to try and handle custom errors, twice.
+            // So we'll leverage the context's ITEMS property to communicate between these
+            // two events.
+
+            // Make this key, unique :)
+            string hasHandledAnErrorKey = "HasHandledAnError_" + DateTime.Now.Ticks;
+
             httpApplication.EndRequest += (sender, e) =>
                                           {
                                               // Check to make sure the Http status is NOT 200.
-                                              if (httpApplication.Response.StatusCode != (int)HttpStatusCode.OK)
+                                              if (!httpApplication.Context.Items.Contains(hasHandledAnErrorKey) &&
+                                                  httpApplication.Response.StatusCode != (int) HttpStatusCode.OK)
                                               {
-                                                  HandleCustomErrors(httpApplication, sender, e, (HttpStatusCode)httpApplication.Response.StatusCode);
+                                                  HandleCustomErrors(httpApplication, sender, e,
+                                                                     (HttpStatusCode)
+                                                                     httpApplication.Response.StatusCode);
                                               }
                                           };
 
-            httpApplication.Error += (sender, e) => HandleCustomErrors(httpApplication, sender, e);
+            httpApplication.Error += (sender, e) =>
+                                     {
+                                         // Handle the error.
+                                         HandleCustomErrors(httpApplication, sender, e);
+
+                                         // Now remeber that this request has already handled the error.
+                                         // This is so the EndRequest event doesn't try to handle the custom
+                                         // errors a 2nd time!
+                                         httpApplication.Context.Items.Add(hasHandledAnErrorKey, true);
+                                     };
         }
 
         /// <summary>
@@ -43,7 +64,22 @@ namespace WorldDomination.Web.Mvc
 
         #endregion
 
-        private static void HandleCustomErrors(HttpApplication httpApplication, object sender, EventArgs e, HttpStatusCode httpStatusCode = HttpStatusCode.InternalServerError)
+        private static CustomErrorsSection CustomErrorsSection
+        {
+            get
+            {
+                if (_customErrorsSection != null)
+                {
+                    return _customErrorsSection;
+                }
+
+                Configuration configuration = WebConfigurationManager.OpenWebConfiguration("/");
+                return _customErrorsSection = configuration.GetSection("system.web/customErrors") as CustomErrorsSection;
+            }
+        }
+
+        private static void HandleCustomErrors(HttpApplication httpApplication, object sender, EventArgs e,
+                                               HttpStatusCode httpStatusCode = HttpStatusCode.InternalServerError)
         {
             // Do not show the custom errors if
             // a) CustomErrors mode == "off" or not set.
@@ -55,11 +91,6 @@ namespace WorldDomination.Web.Mvc
                 return;
             }
 
-            //// By default, this is a code (server) 500 error.
-            //// If we figure out that it's something else like a 404 or 401, etc
-            //// then we'll handle that next.
-            //HttpStatusCode httpStatusCode = HttpStatusCode.InternalServerError;
-
             // Lets remember the current error.
             Exception currentError = HttpContext.Current.Error;
 
@@ -67,7 +98,7 @@ namespace WorldDomination.Web.Mvc
             var httpErrorException = currentError as HttpException;
             if (httpErrorException != null)
             {
-                httpStatusCode = (HttpStatusCode)httpErrorException.GetHttpCode();
+                httpStatusCode = (HttpStatusCode) httpErrorException.GetHttpCode();
             }
 
             // What is the view we require?
@@ -93,22 +124,8 @@ namespace WorldDomination.Web.Mvc
                                       currentError);
             }
 
-            // Avoid any IIS low lever errors.
+            // Avoid any IIS low level errors.
             httpApplication.Response.TrySkipIisCustomErrors = true;
-        }
-
-        private static CustomErrorsSection CustomErrorsSection
-        {
-            get
-            {
-                if (_customErrorsSection != null)
-                {
-                    return _customErrorsSection;
-                }
-
-                Configuration configuration = WebConfigurationManager.OpenWebConfiguration("/");
-                return _customErrorsSection = configuration.GetSection("system.web/customErrors") as CustomErrorsSection;
-            }
         }
 
         private static string GetCustomErrorRedirect(HttpStatusCode httpStatusCode)
@@ -121,7 +138,7 @@ namespace WorldDomination.Web.Mvc
             string redirect = null;
             if (CustomErrorsSection.Errors != null)
             {
-                CustomError customError = CustomErrorsSection.Errors[((int)httpStatusCode).ToString()];
+                CustomError customError = CustomErrorsSection.Errors[((int) httpStatusCode).ToString()];
                 if (customError != null)
                 {
                     redirect = customError.Redirect;
