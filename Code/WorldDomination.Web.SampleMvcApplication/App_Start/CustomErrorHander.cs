@@ -1,10 +1,8 @@
-﻿using System.Web;
-using Microsoft.Web.Infrastructure.DynamicModuleHelper;
+﻿using Microsoft.Web.Infrastructure.DynamicModuleHelper;
 using WorldDomination.Web.Mvc;
 using WorldDomination.Web.SampleMvcApplication.App_Start;
 
-[assembly: PreApplicationStartMethod(typeof(CustomErrorHander), "PreStart")]
-
+[assembly: WebActivator.PreApplicationStartMethod(typeof(CustomErrorHander), "PreStart")]
 namespace WorldDomination.Web.SampleMvcApplication.App_Start
 {
     public static class CustomErrorHander
