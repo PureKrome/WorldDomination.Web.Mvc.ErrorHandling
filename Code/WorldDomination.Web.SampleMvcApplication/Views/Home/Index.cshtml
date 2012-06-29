@@ -8,6 +8,8 @@
 <html>
 <head>
     <title>Index</title>
+    
+    <script src="@Url.Content("http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js")" type="text/javascript"></script>
 </head>
 <body>
     <div>
@@ -23,6 +25,38 @@
         @Html.ActionLink("Click here to try and access a resource that requires you to be Authorized.", "MustBeAuthorized", "Error")
         <br/>
         @Html.ActionLink("Click here to try and unhandled http status.", "WhatchaTalkinBoutWillis", "Error")  (ie. one that hasn't been defined in the web.config).
+        <br/>
+        @Html.ActionLink("Click here to do an Ajax GET, which throws a 500 error.", "ajax1", "Error", null, new {id = "ajax1", name = "ajax1"})
     </div>
+    
+    
+    <script type="text/javascript">
+
+        $(document).ready(function () {
+            
+            $("#ajax1").click(function (e) {
+                e.preventDefault();
+                doAjax("/Error/AjaxThrowsAnError");
+            });
+        });
+
+        function doAjax(someUrl) {
+            $.ajax({
+                url: someUrl,
+                type: "POST",
+                contentType: "application/json",
+                dataType: "json",
+                success: function () {
+                    alert("Success");
+                },
+                error: function (response, status, message) {
+                    var error = jQuery.parseJSON(response.responseText);
+                    alert("Failed: " + error.error_message);
+                }
+            });
+        }
+
+    </script>    
+
 </body>
 </html>

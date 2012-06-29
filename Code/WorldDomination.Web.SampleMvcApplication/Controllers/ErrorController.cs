@@ -22,5 +22,10 @@ namespace WorldDomination.Web.SampleMvcApplication.Controllers
             // Therefore, the defaultRedirect should be used.
             return new HttpStatusCodeResult(405, "What-cha talkin' bout Willis??");
         }
+
+        public ActionResult AjaxThrowsAnError()
+        {
+            throw new InvalidOperationException("Oh noes - code went boomski. :sad panda:");
+        }
     }
 }

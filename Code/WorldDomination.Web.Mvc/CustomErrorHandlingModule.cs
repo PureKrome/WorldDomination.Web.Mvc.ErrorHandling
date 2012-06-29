@@ -36,7 +36,7 @@ namespace WorldDomination.Web.Mvc
                                               if (!httpApplication.Context.Items.Contains(hasHandledAnErrorKey) &&
                                                   httpApplication.Response.StatusCode != (int) HttpStatusCode.OK)
                                               {
-                                                  HandleCustomErrors(httpApplication, sender, e,
+                                                  HandleCustomErrors(httpApplication,
                                                                      (HttpStatusCode)
                                                                      httpApplication.Response.StatusCode);
                                               }
@@ -45,7 +45,7 @@ namespace WorldDomination.Web.Mvc
             httpApplication.Error += (sender, e) =>
                                      {
                                          // Handle the error.
-                                         HandleCustomErrors(httpApplication, sender, e);
+                                         HandleCustomErrors(httpApplication);
 
                                          // Now remeber that this request has already handled the error.
                                          // This is so the EndRequest event doesn't try to handle the custom
@@ -78,7 +78,7 @@ namespace WorldDomination.Web.Mvc
             }
         }
 
-        private static void HandleCustomErrors(HttpApplication httpApplication, object sender, EventArgs e,
+        private static void HandleCustomErrors(HttpApplication httpApplication,
                                                HttpStatusCode httpStatusCode = HttpStatusCode.InternalServerError)
         {
             // Do not show the custom errors if
@@ -101,6 +101,63 @@ namespace WorldDomination.Web.Mvc
                 httpStatusCode = (HttpStatusCode) httpErrorException.GetHttpCode();
             }
 
+            // Render the view, be it html or json, etc.
+            RenderErrorView(httpApplication, httpStatusCode, currentError);
+
+            // Lets clear all the errors otherwise it shows the error page.
+            HttpContext.Current.ClearError();
+
+            // Avoid any IIS low level errors.
+            httpApplication.Response.TrySkipIisCustomErrors = true;
+        }
+
+        private static void RenderErrorView(HttpApplication httpApplication,
+            HttpStatusCode httpStatusCode, Exception currentError)
+        {
+            // Is this an AJAX request?
+            //bool isAjaxCall = string.Equals("XMLHttpRequest", httpApplication.Context.Request.Headers["x-requested-with"], StringComparison.OrdinalIgnoreCase);
+            if (httpApplication.Context.Request.RequestContext.HttpContext.Request.IsAjaxRequest())
+            {
+                RenderAjaxView(httpApplication, httpStatusCode, currentError);
+            }
+            else
+            {
+                RenderNormalView(httpApplication, httpStatusCode, currentError);
+            }
+        }
+
+        private static void RenderAjaxView(HttpApplication httpApplication, HttpStatusCode httpStatusCode,
+                                             Exception currentError)
+        {
+            // Ok. lets check if this content type contains a request for json.
+            string errorMessage = httpApplication.Request.ContentType.Contains("json")
+                                       ? currentError.Message
+                                       : string.Format(
+                                           "An error occured but we are unable to handle the request.ContentType [{0}]. Anyways, the error is: {1}",
+                                           httpApplication.Request.ContentType,
+                                           currentError.Message);
+            
+
+            var errorController = new FakeErrorController();
+            var controllerContext =
+                new ControllerContext(httpApplication.Context.Request.RequestContext, errorController);
+            var jsonResult = new JsonResult
+            {
+                JsonRequestBehavior = JsonRequestBehavior.AllowGet,
+                Data = new
+                {
+                    error_message = errorMessage
+                }
+            };
+            jsonResult.ExecuteResult(controllerContext);
+
+            // Lets make sure we set the correct Error Status code :)
+            httpApplication.Response.StatusCode = (int) httpStatusCode;
+        }
+
+        private static void RenderNormalView(HttpApplication httpApplication, HttpStatusCode httpStatusCode,
+                                             Exception currentError)
+        {
             // What is the view we require?
             string viewPath = GetCustomErrorRedirect(httpStatusCode);
             if (string.IsNullOrEmpty(viewPath))
@@ -108,12 +165,10 @@ namespace WorldDomination.Web.Mvc
                 // Either
                 // 1. No customErrors was provided (which would be weird cause how did we get here?)
                 // 2. No redirect was provided for the httpStatus code.
+                throw new InvalidOperationException("No view path was determined. Ru-roh.");
             }
 
-            // Lets clear all the errors otherwise it shows the error page.
-            HttpContext.Current.ClearError();
-
-            // Now - what do we render? The view provided or some basic content becuase one HASN'T been provided?
+            // Now - what do we render? The view provided or some basic content because one HASN'T been provided?
             if (string.IsNullOrEmpty(viewPath))
             {
                 RenderFallBackErrorViewBecauseNoneWasProvided(httpApplication, httpStatusCode, currentError);
@@ -123,9 +178,6 @@ namespace WorldDomination.Web.Mvc
                 RenderCustomErrorView(httpApplication, viewPath, httpStatusCode,
                                       currentError);
             }
-
-            // Avoid any IIS low level errors.
-            httpApplication.Response.TrySkipIisCustomErrors = true;
         }
 
         private static string GetCustomErrorRedirect(HttpStatusCode httpStatusCode)
