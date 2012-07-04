@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Configuration;
 using System.Net;
 using System.Web;
 using System.Web.Configuration;
@@ -73,8 +72,7 @@ namespace WorldDomination.Web.Mvc
                     return _customErrorsSection;
                 }
 
-                Configuration configuration = WebConfigurationManager.OpenWebConfiguration("/");
-                return _customErrorsSection = configuration.GetSection("system.web/customErrors") as CustomErrorsSection;
+				return _customErrorsSection = WebConfigurationManager.GetWebApplicationSection("system.web/customErrors") as CustomErrorsSection;
             }
         }
 
