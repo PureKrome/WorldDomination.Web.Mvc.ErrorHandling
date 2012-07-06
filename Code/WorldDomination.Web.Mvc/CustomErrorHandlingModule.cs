@@ -72,7 +72,7 @@ namespace WorldDomination.Web.Mvc
                     return _customErrorsSection;
                 }
 
-				return _customErrorsSection = WebConfigurationManager.GetWebApplicationSection("system.web/customErrors") as CustomErrorsSection;
+                return _customErrorsSection = WebConfigurationManager.GetWebApplicationSection("system.web/customErrors") as CustomErrorsSection;
             }
         }
 
