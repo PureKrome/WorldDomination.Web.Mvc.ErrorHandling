@@ -31,9 +31,8 @@ namespace WorldDomination.Web.Mvc
 
             httpApplication.EndRequest += (sender, e) =>
                                           {
-                                              // Check to make sure the Http status is NOT 200.
                                               if (!httpApplication.Context.Items.Contains(hasHandledAnErrorKey) &&
-                                                  httpApplication.Response.StatusCode != (int) HttpStatusCode.OK)
+                                                  IsFaultRequest(httpApplication))
                                               {
                                                   HandleCustomErrors(httpApplication,
                                                                      (HttpStatusCode)
@@ -51,6 +50,16 @@ namespace WorldDomination.Web.Mvc
                                          // errors a 2nd time!
                                          httpApplication.Context.Items.Add(hasHandledAnErrorKey, true);
                                      };
+        }
+
+        /// <summary>
+        /// Check if HTTP status code indicates some kind of error
+        /// </summary>
+        /// <param name="httpApplication"></param>
+        /// <returns></returns>
+        private static bool IsFaultRequest(HttpApplication httpApplication)
+        {
+            return httpApplication.Response.StatusCode >= 400;
         }
 
         /// <summary>
