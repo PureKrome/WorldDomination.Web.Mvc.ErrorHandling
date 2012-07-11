@@ -27,6 +27,14 @@
         @Html.ActionLink("Click here to try and unhandled http status.", "WhatchaTalkinBoutWillis", "Error")  (ie. one that hasn't been defined in the web.config).
         <br/>
         @Html.ActionLink("Click here to do an Ajax GET, which throws a 500 error.", "ajax1", "Error", null, new {id = "ajax1", name = "ajax1"})
+        <hr/>
+        <b>Other non error HTTP Status'</b> (.. to make sure that we're not messing with 'em)</b>
+        <br/>
+        @Html.ActionLink("Normal HTTP 200 OK", "Ok200", "NonError")
+        <br/>
+        @Html.ActionLink("Permanent Redirection 301", "PermanentRedirection301", "NonError") - NOTE: This will redirect you to GITHUB.
+        <br/>
+        @Html.ActionLink("Temporary Redirection 302", "TemporaryRedirection302", "NonError") - NOTE: This will redirect you to GITHUB.
     </div>
     
     

@@ -32,7 +32,7 @@ namespace WorldDomination.Web.Mvc
             httpApplication.EndRequest += (sender, e) =>
                                           {
                                               if (!httpApplication.Context.Items.Contains(hasHandledAnErrorKey) &&
-                                                  IsFaultRequest(httpApplication))
+                                                  IsAnErrorResponse(httpApplication.Response))
                                               {
                                                   HandleCustomErrors(httpApplication,
                                                                      (HttpStatusCode)
@@ -52,14 +52,10 @@ namespace WorldDomination.Web.Mvc
                                      };
         }
 
-        /// <summary>
-        /// Check if HTTP status code indicates some kind of error
-        /// </summary>
-        /// <param name="httpApplication"></param>
-        /// <returns></returns>
-        private static bool IsFaultRequest(HttpApplication httpApplication)
+        // REFERENCE: http://en.wikipedia.org/wiki/List_of_HTTP_status_codes"
+        private static bool IsAnErrorResponse(HttpResponse httpResponse)
         {
-            return httpApplication.Response.StatusCode >= 400;
+            return httpResponse.StatusCode >= 400;
         }
 
         /// <summary>
