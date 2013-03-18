@@ -11,12 +11,12 @@ namespace WorldDomination.Web.SampleMvcApplication.Controllers
 
         public RedirectResult PermanentRedirection301()
         {
-            return RedirectPermanent("https://github.com/PureKrome/MagicalUnicorn.MvcErrorToolkit");
+			return RedirectPermanent("https://github.com/PureKrome/WorldDomination.Web.Mvc.ErrorHandling");
         }
 
         public RedirectResult TemporaryRedirection302()
         {
-            return Redirect("https://github.com/PureKrome/MagicalUnicorn.MvcErrorToolkit");
+			return Redirect("https://github.com/PureKrome/WorldDomination.Web.Mvc.ErrorHandling");
         }
     }
 }
