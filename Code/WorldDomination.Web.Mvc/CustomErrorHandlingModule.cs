@@ -97,9 +97,10 @@ namespace WorldDomination.Web.Mvc
             // Lets remember the current error.
             var currentError = HttpContext.Current != null ? HttpContext.Current.Error : null;
 
-            // Sometimes the error doesn't appear
-            if (null == currentError)
+            // Do we have an error? If not, then we should just leave. We don't know what do handle!
+            if (currentError == null)
             {
+                // Le sniffles.
                 return;
             }
 
