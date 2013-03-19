@@ -2,7 +2,7 @@
 using WorldDomination.Web.Mvc;
 using $rootnamespace$.App_Start;
 
-[assembly: WebActivator.PreApplicationStartMethod(typeof(CustomErrorHander), "PreStart")]
+[assembly: WebActivatorEx.PreApplicationStartMethod(typeof(CustomErrorHander), "PreStart")]
 namespace $rootnamespace$.App_Start
 {
     public static class CustomErrorHander
