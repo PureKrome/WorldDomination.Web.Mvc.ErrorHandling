@@ -95,7 +95,7 @@ namespace WorldDomination.Web.Mvc
             }
 
             // Lets remember the current error.
-            Exception currentError = HttpContext.Current.Error;
+            var currentError = HttpContext.Current != null ? HttpContext.Current.Error : null;
 
             // Sometimes the error doesn't appear
             if (null == currentError)
@@ -114,7 +114,10 @@ namespace WorldDomination.Web.Mvc
             RenderErrorView(httpApplication, httpStatusCode, currentError);
 
             // Lets clear all the errors otherwise it shows the error page.
-            HttpContext.Current.ClearError();
+            if (HttpContext.Current != null)
+            {
+                HttpContext.Current.ClearError();
+            }
 
             // Avoid any IIS low level errors.
             httpApplication.Response.TrySkipIisCustomErrors = true;
