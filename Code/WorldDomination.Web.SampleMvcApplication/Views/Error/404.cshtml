@@ -19,7 +19,7 @@
                 $("#missingkids").dataView();
 
                 var statecode = "ZZ";
-                var dataurl = "http://query.yahooapis.com/v1/public/yql?q=SELECT%20*%20From%20xml%0D%0A%20Where%20url%3D'http%3A%2F%2Fwww.missingkidsmap.com%2Fread.php%3Fstate%3D" + statecode + "'%0D%0A&format=json&callback=?";
+                var dataurl = "http://query.yahooapis.com/v1/public/yql?q=SELECT%20*%20From%20xml%0D%0A%20Where%20url%3D'http%3A%2F%2Fwww.missingkidsmap.com%2Fread.php'%0D%0A&format=json&callback=?";
                 var data = $.getJSON(dataurl, function(results) {
                     Sys.get("$missingkids").set_data(results.query.results.locations.location);
                 }
