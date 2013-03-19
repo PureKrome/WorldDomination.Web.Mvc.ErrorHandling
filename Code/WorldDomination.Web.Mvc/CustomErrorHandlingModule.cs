@@ -97,6 +97,12 @@ namespace WorldDomination.Web.Mvc
             // Lets remember the current error.
             Exception currentError = HttpContext.Current.Error;
 
+            // Sometimes the error doesn't appear
+            if (null == currentError)
+            {
+                return;
+            }
+
             // Do we have an HttpErrorException? Eg. 404 Not found or 401 Not Authorised?
             var httpErrorException = currentError as HttpException;
             if (httpErrorException != null)
