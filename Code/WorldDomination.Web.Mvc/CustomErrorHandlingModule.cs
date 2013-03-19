@@ -97,6 +97,13 @@ namespace WorldDomination.Web.Mvc
             // Lets remember the current error.
             var currentError = HttpContext.Current != null ? HttpContext.Current.Error : null;
 
+            // Do we have an error? If not, then we should just leave. We don't know what do handle!
+            if (currentError == null)
+            {
+                // Le sniffles.
+                return;
+            }
+
             // Do we have an HttpErrorException? Eg. 404 Not found or 401 Not Authorised?
             var httpErrorException = currentError as HttpException;
             if (httpErrorException != null)
