@@ -227,7 +227,7 @@ namespace WorldDomination.Web.Mvc
                 var errorController = new FakeErrorController();
                 var controllerContext =
                     new ControllerContext(httpApplication.Context.Request.RequestContext, errorController);
-                var view = new RazorView(controllerContext, viewPath, null, false, null);
+                var view = new RazorView(controllerContext, viewPath, null, true, new[] { "cshtml", "vbhtml" });
                 var viewModel = new ErrorViewModel
                                 {
                                     Exception = currentError
